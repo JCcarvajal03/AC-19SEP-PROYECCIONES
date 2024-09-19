@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecciones de un Cubo Animado</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000; /* Fondo negro */
+            color: white; /* Texto blanco */
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: white; /* Texto blanco */
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            border: 2px solid #fff; /* Bordes blancos */
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2); /* Sombra clara */
+            transition: transform 0.5s ease;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #333333; /* Fondo oscuro */
+            color: white; /* Texto blanco */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #555555; /* Fondo más claro al pasar el cursor */
+            color: #ffffff; /* Mantener el texto blanco */
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Proyecciones de un Cubo</h1>
+    
+    <div id="container">
+        <canvas id="cuboCanvas" width="300" height="300"></canvas>
+        <div class="buttons">
+            <button onclick="dibujarPerspectiva()">Perspectiva</button>
+            <button onclick="dibujarOrtografica()">Ortográfica</button>
+            <button onclick="dibujarIsometrica()">Isométrica</button>
+        </div>
+    </div>
+
+    <script>
+        // Clase Línea
+        class Linea {
+            constructor(puntoInicial, puntoFinal) {
+                this.puntoInicial = puntoInicial;
+                this.puntoFinal = puntoFinal;
+            }
+
+            dibujar(ctx) {
+                ctx.strokeStyle = "#ffffff"; // Color blanco para las líneas
+                ctx.beginPath();
+                ctx.moveTo(this.puntoInicial[0], this.puntoInicial[1]);
+                ctx.lineTo(this.puntoFinal[0], this.puntoFinal[1]);
+                ctx.stroke();
+            }
+        }
+
+        // Clase Cuadrado (para crear las caras del cubo)
+        class Cuadrado {
+            constructor(puntos) {
+                this.lineas = [
+                    new Linea(puntos[0], puntos[1]),
+                    new Linea(puntos[1], puntos[2]),
+                    new Linea(puntos[2], puntos[3]),
+                    new Linea(puntos[3], puntos[0])
+                ];
+            }
+
+            dibujar(ctx) {
+                this.lineas.forEach(linea => linea.dibujar(ctx));
+            }
+        }
+
+        // Clase Cubo
+        class Cubo {
+            constructor(puntosCaraFrontal, puntosCaraTrasera) {
+                this.caraFrontal = new Cuadrado(puntosCaraFrontal);
+                this.caraTrasera = new Cuadrado(puntosCaraTrasera);
+                this.lineasConectores = [
+                    new Linea(puntosCaraFrontal[0], puntosCaraTrasera[0]),
+                    new Linea(puntosCaraFrontal[1], puntosCaraTrasera[1]),
+                    new Linea(puntosCaraFrontal[2], puntosCaraTrasera[2]),
+                    new Linea(puntosCaraFrontal[3], puntosCaraTrasera[3])
+                ];
+            }
+
+            dibujar(ctx) {
+                this.caraFrontal.dibujar(ctx);
+                this.caraTrasera.dibujar(ctx);
+                this.lineasConectores.forEach(linea => linea.dibujar(ctx));
+            }
+        }
+
+        // Configuración inicial para dibujar en el canvas
+        const canvas = document.getElementById('cuboCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Función para proyectar el cubo en perspectiva
+        function dibujarPerspectiva() {
+            limpiarCanvas();
+            const puntosFrontal = [[100, 100], [200, 100], [200, 200], [100, 200]];
+            const puntosTrasero = [[130, 130], [230, 130], [230, 230], [130, 230]];
+
+            const cubo = new Cubo(puntosFrontal, puntosTrasero);
+            animarCubo(cubo, ctx);
+        }
+
+        // Función para proyectar el cubo en ortográfica
+        function dibujarOrtografica() {
+            limpiarCanvas();
+            const puntosFrontal = [[100, 100], [200, 100], [200, 200], [100, 200]];
+            const puntosTrasero = [[100, 100], [200, 100], [200, 200], [100, 200]];
+
+            const cubo = new Cubo(puntosFrontal, puntosTrasero);
+            animarCubo(cubo, ctx);
+        }
+
+        // Función para proyectar el cubo en isométrica
+        function dibujarIsometrica() {
+            limpiarCanvas();
+            const puntosFrontal = [[150, 100], [250, 150], [200, 250], [100, 200]];
+            const puntosTrasero = [[200, 50], [300, 100], [250, 200], [150, 150]];
+
+            const cubo = new Cubo(puntosFrontal, puntosTrasero);
+            animarCubo(cubo, ctx);
+        }
+
+        // Función para limpiar el canvas
+        function limpiarCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Función para animar la transición del cubo
+        function animarCubo(cubo, ctx) {
+            canvas.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                cubo.dibujar(ctx);
+                canvas.style.transform = "scale(1)";
+            }, 300);
+        }
+
+        // Dibujar perspectiva por defecto
+        dibujarPerspectiva();
+    </script>
+
+</body>
+</html>
+
